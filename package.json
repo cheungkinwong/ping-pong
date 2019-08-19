@@ -1,0 +1,23 @@
+{
+     "name": "ping-pong",
+     "version": "1.0.0",
+     "description": "ping pong",
+     "main": "main.js",
+     "dependencies": {
+          "pixi.js": "^5.1.1"
+     },
+     "devDependencies": {},
+     "scripts": {
+          "test": "echo \"Error: no test specified\" && exit 1"
+     },
+     "repository": {
+          "type": "git",
+          "url": "git+https://github.com/cheungkinwong/ping-pong.git"
+     },
+     "author": "",
+     "license": "ISC",
+     "bugs": {
+          "url": "https://github.com/cheungkinwong/ping-pong/issues"
+     },
+     "homepage": "https://github.com/cheungkinwong/ping-pong#readme"
+}
