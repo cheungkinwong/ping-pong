@@ -55,7 +55,7 @@ app.stage.addChild(rope);
 //line in the middle
 let net = new PIXI.Graphics();
 net.beginFill(0xffffff);
-net.drawRoundedRect(0, 0, 10, 800, 5);
+net.drawRoundedRect(0, 0, 10, (window.innerHeight / 10) * 9, 5);
 net.x = (window.innerWidth - net.width) / 2;
 net.y = (window.innerHeight - net.height) / 2;
 app.stage.addChild(net);
@@ -256,8 +256,6 @@ function gameLoop(delta) {
           p.x = ix;
           p.y = iy;
      }
-     console.log("x: ", circle.velocityX);
-     console.log("y; ", circle.velocityY);
 }
 
 function clipInput(k, arr) {
@@ -292,7 +290,6 @@ function resetcircle() {
      circle.y = window.innerHeight / 2;
      circle.velocityX = random();
      circle.velocityY = random();
-     // circle.velocityX = -circle.velocityX;
      circle.speed = 7;
 }
 
@@ -313,5 +310,4 @@ function collision(circle, player) {
 var socket = io("http://localhost");
 socket.on("news", function(data) {
      console.log(data);
-     socket.emit("my other event", { my: "data" });
 });
