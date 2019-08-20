@@ -4,7 +4,9 @@
      "description": "ping pong",
      "main": "main.js",
      "dependencies": {
-          "pixi.js": "^5.1.1"
+          "express": "^4.17.1",
+          "pixi.js": "^5.1.1",
+          "socket.io": "^2.2.0"
      },
      "devDependencies": {},
      "scripts": {

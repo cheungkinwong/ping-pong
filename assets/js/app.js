@@ -1,14 +1,13 @@
 const app = new PIXI.Application({ antialias: true, transparent: false, resolution: 1 });
 app.renderer.view.style.position = "absolute";
 app.renderer.view.style.display = "block";
+app.renderer.resize(window.innerWidth, window.innerHeight);
 PIXI.AbstractRenderer.autoDensity;
 document.body.appendChild(app.view);
 
-function random() {
-     var random = Math.floor(Math.random() * 5) - 5;
-     if (random == 0) return getNonZeroRandomNumber();
-     return random;
-}
+// -----------------------------------------------------------objects
+
+//ball
 let circle = new PIXI.Graphics();
 circle.beginFill(0xffffff);
 circle.drawCircle(0, 0, 20);
@@ -21,6 +20,39 @@ circle.speed = 7;
 circle.radius = 10;
 app.stage.addChild(circle);
 
+function random() {
+     var randomNumber = Math.floor(Math.random() * 10) - 5;
+     if (randomNumber === 0) {
+          return random();
+     } else {
+          return randomNumber;
+     }
+}
+const trailTexture = PIXI.Texture.from("./assets/img/trail.png");
+const historyX = [];
+const historyY = [];
+// historySize determines how long the trail will be.
+const historySize = 50;
+// ropeSize determines how smooth the trail will be.
+const ropeSize = 100;
+const points = [];
+
+// Create history array.
+for (let i = 0; i < historySize; i++) {
+     historyX.push(0);
+     historyY.push(0);
+}
+// Create rope points.
+for (let i = 0; i < ropeSize; i++) {
+     points.push(new PIXI.Point(0, 0));
+}
+// Create the rope
+const rope = new PIXI.SimpleRope(trailTexture, points);
+// Set the blendmode
+rope.blendmode = PIXI.BLEND_MODES.ADD;
+app.stage.addChild(rope);
+
+//line in the middle
 let net = new PIXI.Graphics();
 net.beginFill(0xffffff);
 net.drawRoundedRect(0, 0, 10, 800, 5);
@@ -28,6 +60,7 @@ net.x = (window.innerWidth - net.width) / 2;
 net.y = (window.innerHeight - net.height) / 2;
 app.stage.addChild(net);
 
+//player1
 let roundBox1 = new PIXI.Graphics();
 roundBox1.beginFill(0xffffff);
 roundBox1.drawRoundedRect(0, 0, 40, 100, 10);
@@ -50,6 +83,7 @@ scoreP1.x = window.innerWidth / 4;
 scoreP1.y = 90;
 app.stage.addChild(scoreP1);
 
+//player2
 let roundBox2 = new PIXI.Graphics();
 roundBox2.beginFill(0xffffff);
 roundBox2.drawRoundedRect(0, 0, 40, 100, 10);
@@ -65,6 +99,7 @@ scoreP2.x = (window.innerWidth / 4) * 3;
 scoreP2.y = 90;
 app.stage.addChild(scoreP2);
 
+// ----------------------------------------------------------controls
 function keyboard(value) {
      let key = {};
      key.value = value;
@@ -107,41 +142,60 @@ function keyboard(value) {
      return key;
 }
 
-let up = keyboard("ArrowUp");
-let down = keyboard("ArrowDown");
+let upP1 = keyboard("q");
+let downP1 = keyboard("w");
+let upP2 = keyboard("ArrowUp");
+let downP2 = keyboard("ArrowDown");
 
+//control p1
 //Up
-up.press = () => {
+upP1.press = () => {
      roundBox1.vy = -10;
+};
+upP1.release = () => {
+     if (!downP1.isDown) {
+          roundBox1.vy = 0;
+     }
+};
+
+//Down
+downP1.press = () => {
+     roundBox1.vy = 10;
+};
+downP1.release = () => {
+     if (!upP1.isDown) {
+          roundBox1.vy = 0;
+     }
+};
+
+//control p2
+//Up
+upP2.press = () => {
      roundBox2.vy = -10;
 };
-up.release = () => {
-     if (!down.isDown) {
-          roundBox1.vy = 0;
+upP2.release = () => {
+     if (!downP2.isDown) {
           roundBox2.vy = 0;
      }
 };
 
 //Down
-down.press = () => {
-     roundBox1.vy = 10;
+downP2.press = () => {
      roundBox2.vy = 10;
 };
-down.release = () => {
-     if (!up.isDown) {
-          roundBox1.vy = 0;
+downP2.release = () => {
+     if (!upP2.isDown) {
           roundBox2.vy = 0;
      }
 };
 
+//-----------------------------------------------------setup
 //Set the game state
 state = play;
 //Start the game loop
 app.ticker.add(delta => gameLoop(delta));
 
 function gameLoop(delta) {
-     app.renderer.resize(window.innerWidth, window.innerHeight);
-
      let player = "";
      if (circle.x > window.innerWidth / 2) {
           player = roundBox2;
@@ -183,9 +237,49 @@ function gameLoop(delta) {
           scoreP1.text = roundBox1.score;
           resetcircle();
      }
+
      circle.x += circle.velocityX;
      circle.y += circle.velocityY;
-     console.log(circle.speed);
+
+     historyX.pop();
+     historyX.unshift(circle.x);
+     historyY.pop();
+     historyY.unshift(circle.y);
+     // Update the points to correspond with history.
+     for (let i = 0; i < ropeSize; i++) {
+          const p = points[i];
+
+          // Smooth the curve with cubic interpolation to prevent sharp edges.
+          const ix = cubicInterpolation(historyX, (i / ropeSize) * historySize);
+          const iy = cubicInterpolation(historyY, (i / ropeSize) * historySize);
+
+          p.x = ix;
+          p.y = iy;
+     }
+     console.log("x: ", circle.velocityX);
+     console.log("y; ", circle.velocityY);
+}
+
+function clipInput(k, arr) {
+     if (k < 0) k = 0;
+     if (k > arr.length - 1) k = arr.length - 1;
+     return arr[k];
+}
+
+function getTangent(k, factor, array) {
+     return (factor * (clipInput(k + 1, array) - clipInput(k - 1, array))) / 2;
+}
+
+function cubicInterpolation(array, t, tangentFactor) {
+     if (tangentFactor == null) tangentFactor = 1;
+
+     const k = Math.floor(t);
+     const m = [getTangent(k, tangentFactor, array), getTangent(k + 1, tangentFactor, array)];
+     const p = [clipInput(k, array), clipInput(k + 1, array)];
+     t -= k;
+     const t2 = t * t;
+     const t3 = t * t2;
+     return (2 * t3 - 3 * t2 + 1) * p[0] + (t3 - 2 * t2 + t) * m[0] + (-2 * t3 + 3 * t2) * p[1] + (t3 - t2) * m[1];
 }
 
 function play() {
@@ -196,7 +290,9 @@ function play() {
 function resetcircle() {
      circle.x = window.innerWidth / 2;
      circle.y = window.innerHeight / 2;
-     circle.velocityX = -circle.velocityX;
+     circle.velocityX = random();
+     circle.velocityY = random();
+     // circle.velocityX = -circle.velocityX;
      circle.speed = 7;
 }
 
@@ -212,3 +308,5 @@ function collision(circle, player) {
      player.right = player.x + player.width;
      return player.left < circle.right && player.top < circle.bottom && player.right > circle.left && player.bottom > circle.top;
 }
+
+//------------------------------------------------socket io
