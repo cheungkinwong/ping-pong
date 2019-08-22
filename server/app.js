@@ -1,13 +1,36 @@
-var app = require("http")
-     .createServer(function(req, res) {
-          res.writeHead(200, { "Content-Type": "text/plain" });
-     })
-     .listen(8080);
+//-------------------------------------------------socket io server
+
+var app = require("http").createServer();
 var io = require("socket.io")(app);
 
-io.on("connection", function(socket) {
-     console.log("a user connected");
+app.listen(8080);
+
+const gameState = {
+     players: {}
+     // ball: {}
+};
+
+io.on("connection", socket => {
+     console.log("a user connected:", socket.id);
      socket.on("disconnect", function() {
           console.log("user disconnected");
+          delete gameState.players[socket.id];
+     });
+     socket.on("newPlayer", newPlayer => {
+          gameState.players[socket.id] = {
+               score: 0,
+               y: newPlayer.y
+          };
+     });
+     socket.on("playerState", playerState => {
+          gameState.players[socket.id] = { y: playerState.y, score: playerState.score, circleX: playerState.circleX, circleY: playerState.circleY };
+          // gameState.ball = {
+          //      circleX: playerState.circleX,
+          //      circleY: playerState.circleY
+          // };
      });
 });
+
+setInterval(() => {
+     io.sockets.emit("state", gameState);
+}, 1000 / 60);

@@ -61,15 +61,15 @@ net.y = (window.innerHeight - net.height) / 2;
 app.stage.addChild(net);
 
 //player1
-let roundBox1 = new PIXI.Graphics();
-roundBox1.beginFill(0xffffff);
-roundBox1.drawRoundedRect(0, 0, 40, 100, 10);
-roundBox1.endFill();
-roundBox1.x = 48;
-roundBox1.y = window.innerHeight / 2;
-roundBox1.vy = 0;
-roundBox1.score = 0;
-app.stage.addChild(roundBox1);
+let player = new PIXI.Graphics();
+player.beginFill(0xffffff);
+player.drawRoundedRect(0, 0, 40, 100, 10);
+player.endFill();
+player.x = 48;
+player.y = window.innerHeight / 2;
+player.vy = 0;
+player.score = 0;
+app.stage.addChild(player);
 
 const style = new PIXI.TextStyle({
      fontFamily: '"Lucida Sans Unicode", "Lucida Grande", sans-serif',
@@ -78,23 +78,23 @@ const style = new PIXI.TextStyle({
      fill: "0xffffff"
 });
 
-const scoreP1 = new PIXI.Text(roundBox1.score, style);
+const scoreP1 = new PIXI.Text(player.score, style);
 scoreP1.x = window.innerWidth / 4;
 scoreP1.y = 90;
 app.stage.addChild(scoreP1);
 
 //player2
-let roundBox2 = new PIXI.Graphics();
-roundBox2.beginFill(0xffffff);
-roundBox2.drawRoundedRect(0, 0, 40, 100, 10);
-roundBox2.endFill();
-roundBox2.x = window.innerWidth - 88;
-roundBox2.y = window.innerHeight / 2;
-roundBox2.vy = 0;
-roundBox2.score = 0;
-app.stage.addChild(roundBox2);
+let opponent = new PIXI.Graphics();
+opponent.beginFill(0xffffff);
+opponent.drawRoundedRect(0, 0, 40, 100, 10);
+opponent.endFill();
+opponent.x = window.innerWidth - 88;
+opponent.y = window.innerHeight / 2;
+opponent.vy = 0;
+opponent.score = 0;
+app.stage.addChild(opponent);
 
-const scoreP2 = new PIXI.Text(roundBox2.score, style);
+const scoreP2 = new PIXI.Text(opponent.score, style);
 scoreP2.x = (window.innerWidth / 4) * 3;
 scoreP2.y = 90;
 app.stage.addChild(scoreP2);
@@ -150,42 +150,42 @@ let downP2 = keyboard("ArrowDown");
 //control p1
 //Up
 upP1.press = () => {
-     roundBox1.vy = -10;
+     player.vy = -10;
 };
 upP1.release = () => {
      if (!downP1.isDown) {
-          roundBox1.vy = 0;
+          player.vy = 0;
      }
 };
 
 //Down
 downP1.press = () => {
-     roundBox1.vy = 10;
+     player.vy = 10;
 };
 downP1.release = () => {
      if (!upP1.isDown) {
-          roundBox1.vy = 0;
+          player.vy = 0;
      }
 };
 
 //control p2
 //Up
 upP2.press = () => {
-     roundBox2.vy = -10;
+     opponent.vy = -10;
 };
 upP2.release = () => {
      if (!downP2.isDown) {
-          roundBox2.vy = 0;
+          opponent.vy = 0;
      }
 };
 
 //Down
 downP2.press = () => {
-     roundBox2.vy = 10;
+     opponent.vy = 10;
 };
 downP2.release = () => {
      if (!upP2.isDown) {
-          roundBox2.vy = 0;
+          opponent.vy = 0;
      }
 };
 
@@ -196,23 +196,23 @@ state = play;
 app.ticker.add(delta => gameLoop(delta));
 
 function gameLoop(delta) {
-     let player = "";
+     let side = "";
      if (circle.x > window.innerWidth / 2) {
-          player = roundBox2;
+          side = opponent;
      } else {
-          player = roundBox1;
+          side = player;
      }
 
      state(delta);
      if (circle.y < 0 || circle.y > window.innerHeight) {
           circle.velocityY = -circle.velocityY;
      }
-     if (collision(circle, player)) {
+     if (collision(circle, side)) {
           // we check where the circle hits the paddle
-          let collidePoint = circle.y - (player.y + player.height / 2);
+          let collidePoint = circle.y - (side.y + side.height / 2);
           // normalize the value of collidePoint, we need to get numbers between -1 and 1.
           // -player.height/2 < collide Point < player.height/2
-          collidePoint = collidePoint / (player.height / 2);
+          collidePoint = collidePoint / (side.height / 2);
 
           // when the circle hits the top of a paddle we want the circle, to take a -45degees angle
           // when the circle hits the center of the paddle we want the circle to take a 0degrees angle
@@ -229,13 +229,13 @@ function gameLoop(delta) {
           circle.speed += 2;
      }
      if (circle.x - circle.radius < 0) {
-          roundBox2.score++;
-          scoreP2.text = roundBox2.score;
-          resetcircle();
+          opponent.score++;
+          scoreP2.text = opponent.score;
+          setTimeout(resetcircle(), 3000);
      } else if (circle.x + circle.radius > window.innerWidth) {
-          roundBox1.score++;
-          scoreP1.text = roundBox1.score;
-          resetcircle();
+          player.score++;
+          scoreP1.text = player.score;
+          setTimeout(resetcircle(), 3000);
      }
 
      circle.x += circle.velocityX;
@@ -281,8 +281,8 @@ function cubicInterpolation(array, t, tangentFactor) {
 }
 
 function play() {
-     roundBox1.y += roundBox1.vy;
-     roundBox2.y += roundBox2.vy;
+     player.y += player.vy;
+     opponent.y += opponent.vy;
 }
 
 function resetcircle() {
@@ -293,21 +293,39 @@ function resetcircle() {
      circle.speed = 7;
 }
 
-function collision(circle, player) {
+function collision(circle, side) {
      circle.top = circle.y - circle.radius;
      circle.bottom = circle.y + circle.radius;
      circle.left = circle.x - circle.radius;
      circle.right = circle.x + circle.radius;
 
-     player.top = player.y;
-     player.bottom = player.y + player.height;
-     player.left = player.x;
-     player.right = player.x + player.width;
-     return player.left < circle.right && player.top < circle.bottom && player.right > circle.left && player.bottom > circle.top;
+     side.top = side.y;
+     side.bottom = side.y + side.height;
+     side.left = side.x;
+     side.right = side.x + side.width;
+     return side.left < circle.right && side.top < circle.bottom && side.right > circle.left && side.bottom > circle.top;
 }
 
-//------------------------------------------------socket io
-var socket = io("http://localhost");
-socket.on("news", function(data) {
-     console.log(data);
+//------------------------------------------------socket io client
+
+const socket = io("http://localhost:8080");
+socket.emit("newPlayer", { y: player.y });
+socket.on("state", gameState => {
+     let key = Object.keys(gameState.players);
+     let masterKey = key[0];
+     console.log(masterKey, "lol");
+     let myKey = socket.id;
+     let opponentKey;
+     for (let i = 0; i < key.length; i++) {
+          if (key[i] !== myKey) {
+               opponentKey = key[i];
+          }
+     } 
+     opponent.y = gameState.players[opponentKey].y;
+     opponent.score = gameState.players[opponentKey].score;
+     circle.x = gameState.players[masterKey].circleX;
+     circle.y = gameState.players[masterKey].circleY;
 });
+setInterval(() => {
+     socket.emit("playerState", { y: player.y, score: player.score, circleX: circle.x, circleY: circle.y });
+}, 1000 / 60);
