@@ -7,7 +7,6 @@ app.listen(8080);
 
 const gameState = {
      players: {}
-     // ball: {}
 };
 
 io.on("connection", socket => {
@@ -21,6 +20,7 @@ io.on("connection", socket => {
                score: 0,
                y: newPlayer.y
           };
+          socket.emit("newGame");
      });
      socket.on("playerState", playerState => {
           gameState.players[socket.id] = { y: playerState.y, score: playerState.score, circleX: playerState.circleX, circleY: playerState.circleY };

@@ -310,21 +310,31 @@ function collision(circle, side) {
 
 const socket = io("http://localhost:8080");
 socket.emit("newPlayer", { y: player.y });
+socket.on("newGame", function newGame() {
+     player.score = 0;
+     opponent.score = 0;
+     resetcircle();
+});
 socket.on("state", gameState => {
+     console.log(gameState);
      let key = Object.keys(gameState.players);
      let masterKey = key[0];
-     console.log(masterKey, "lol");
      let myKey = socket.id;
      let opponentKey;
      for (let i = 0; i < key.length; i++) {
           if (key[i] !== myKey) {
                opponentKey = key[i];
           }
-     } 
-     opponent.y = gameState.players[opponentKey].y;
-     opponent.score = gameState.players[opponentKey].score;
-     circle.x = gameState.players[masterKey].circleX;
-     circle.y = gameState.players[masterKey].circleY;
+     }
+     if (opponentKey !== "undefined") {
+          opponent.y = gameState.players[opponentKey].y;
+          opponent.score = gameState.players[opponentKey].score;
+     }
+     // player.score = gameState.players[myKey].score;
+     if (masterKey !== myKey) {
+          circle.x = window.innerWidth - gameState.players[masterKey].circleX;
+          circle.y = gameState.players[masterKey].circleY;
+     }
 });
 setInterval(() => {
      socket.emit("playerState", { y: player.y, score: player.score, circleX: circle.x, circleY: circle.y });
