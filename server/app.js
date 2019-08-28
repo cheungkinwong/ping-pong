@@ -4,6 +4,7 @@ var app = require("http").createServer();
 var io = require("socket.io")(app);
 
 app.listen(8080);
+console.log("server is up");
 
 const gameState = {
      players: {}
@@ -24,10 +25,6 @@ io.on("connection", socket => {
      });
      socket.on("playerState", playerState => {
           gameState.players[socket.id] = { y: playerState.y, score: playerState.score, circleX: playerState.circleX, circleY: playerState.circleY };
-          // gameState.ball = {
-          //      circleX: playerState.circleX,
-          //      circleY: playerState.circleY
-          // };
      });
 });
 

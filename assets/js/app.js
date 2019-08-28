@@ -316,7 +316,6 @@ socket.on("newGame", function newGame() {
      resetcircle();
 });
 socket.on("state", gameState => {
-     console.log(gameState);
      let key = Object.keys(gameState.players);
      let masterKey = key[0];
      let myKey = socket.id;
@@ -326,7 +325,7 @@ socket.on("state", gameState => {
                opponentKey = key[i];
           }
      }
-     if (opponentKey !== "undefined") {
+     if (opponentKey !== undefined) {
           opponent.y = gameState.players[opponentKey].y;
           opponent.score = gameState.players[opponentKey].score;
      }
@@ -334,6 +333,10 @@ socket.on("state", gameState => {
      if (masterKey !== myKey) {
           circle.x = window.innerWidth - gameState.players[masterKey].circleX;
           circle.y = gameState.players[masterKey].circleY;
+     }
+
+     function lerp(v0, v1, t) {
+          return v0 * (1 - t) + v1 * t;
      }
 });
 setInterval(() => {
