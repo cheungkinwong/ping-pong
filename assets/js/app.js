@@ -28,6 +28,11 @@ function random() {
           return randomNumber;
      }
 }
+
+function lerp(v0, v1, t) {
+     return v0 * (1 - t) + v1 * t;
+}
+
 const trailTexture = PIXI.Texture.from("./assets/img/trail.png");
 const historyX = [];
 const historyY = [];
@@ -238,8 +243,13 @@ function gameLoop(delta) {
           setTimeout(resetcircle(), 3000);
      }
 
-     circle.x += circle.velocityX;
-     circle.y += circle.velocityY;
+     // circle.x += circle.velocityX;
+     // circle.y += circle.velocityY;
+
+     let lerpX = (circle.x += circle.velocityX);
+     let lerpY = (circle.y += circle.velocityY);
+     circle.x = lerp(circle.x, lerpX, 0.01);
+     circle.y = lerp(circle.y, lerpY, 0.01);
 
      historyX.pop();
      historyX.unshift(circle.x);
@@ -326,17 +336,17 @@ socket.on("state", gameState => {
           }
      }
      if (opponentKey !== undefined) {
-          opponent.y = gameState.players[opponentKey].y;
+          opponent.y = lerp(opponent.y, gameState.players[opponentKey].y, 0.2);
           opponent.score = gameState.players[opponentKey].score;
      }
      // player.score = gameState.players[myKey].score;
      if (masterKey !== myKey) {
+          // let lerpX = lerp(circle.x, gameState.players[masterKey].circleX, 0.01);
+          // circle.x = window.innerWidth - lerpX;
+          // circle.y = lerp(circle.y, gameState.players[masterKey].circleY, 0.01);
+
           circle.x = window.innerWidth - gameState.players[masterKey].circleX;
           circle.y = gameState.players[masterKey].circleY;
-     }
-
-     function lerp(v0, v1, t) {
-          return v0 * (1 - t) + v1 * t;
      }
 });
 setInterval(() => {
